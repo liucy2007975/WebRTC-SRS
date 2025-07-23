@@ -71,8 +71,6 @@ class WhipWhepManager(
                 tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
                 
                 // 禁用外部ICE服务器，直接使用WebRTC服务器
-                disableIPv6 = true
-                maxIPv6Networks = 0
                 
                 // 配置TCP连接参数
                 enableDscp = true
@@ -105,14 +103,14 @@ class WhipWhepManager(
                 
                 // 添加视频轨道
                 addTransceiver(
-                    videoSource,
+                    videoTrack,
                     RtpTransceiver.RtpTransceiverInit(RtpTransceiver.RtpTransceiverDirection.SEND_ONLY)
                 )
             }
             
             whipConnection = peerConnection
             whipAudioTrack = audioTrack
-            whipVideoTrack = videoSource
+            whipVideoTrack = videoTrack
             
             // 创建Offer - 使用H264和PCMA编码约束
             val mediaConstraints = createMediaConstraints()
@@ -166,8 +164,6 @@ class WhipWhepManager(
                 tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
                 
                 // 禁用外部ICE服务器，直接使用WebRTC服务器
-                disableIPv6 = true
-                maxIPv6Networks = 0
                 
                 // 配置TCP连接参数
                 enableDscp = true
