@@ -25,10 +25,11 @@
 ### 网络协议
 - **传输模式**: WebRTC over TCP (禁用UDP传输)
 - **信令协议**: WHIP/WHEP (WebRTC-HTTP ingestion protocol)
-- **WHIP端点**: 用于发布本地音视频流到WebRTC服务器
-- **WHEP端点**: 用于从WebRTC服务器拉取远端音视频流
+- **双向架构**: 每个用户需要两个独立的流ID
+  - 推流ID: 发送自己的音视频到服务器
+  - 拉流ID: 从服务器接收对方的音视频
 - **ICE配置**: 禁用外部ICE服务器，直接使用WebRTC服务器地址
-- **连接方式**: 所有通信通过WebRTC服务器中转，不建立P2P连接
+- **连接方式**: SFU模式 - 所有通信通过ZLMediaKit服务器转发，不建立P2P连接
 
 ## 功能需求
 
