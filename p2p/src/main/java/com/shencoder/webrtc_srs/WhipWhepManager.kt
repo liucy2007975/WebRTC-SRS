@@ -246,11 +246,12 @@ class WhipWhepManager(
     }
     
     /**
-     * 发送WHIP推流请求
+     * 发送WHIP推流请求 - ZLMediaKit格式
      */
     private suspend fun sendWhipRequest(sdp: String, roomId: String) {
         try {
-            val whipUrl = Constant.WHIP_WHEP_BASE_URL + "/whip/" + roomId
+            // ZLMediaKit格式: /index/api/webrtc?app=live&stream={roomId}&type=push&codec=H264/PCMA
+            val whipUrl = "${Constant.WHIP_WHEP_BASE_URL}/index/api/webrtc?app=live&stream=$roomId&type=push&codec=H264/PCMA"
             
             val response = withContext(Dispatchers.IO) {
                 retrofitClient.apiService.whipPublish(whipUrl, sdp)
@@ -260,7 +261,7 @@ class WhipWhepManager(
                 val responseBody = response.body()
                 responseBody?.let { body ->
                     whipResourceUrl = body.location ?: body.link
-                    XLog.i("WHIP推流成功，资源URL: $whipResourceUrl")
+                    XLog.i("ZLMediaKit推流成功，资源URL: $whipResourceUrl")
                     
                     // 设置远程SDP
                     val answerSdp = SessionDescription(
@@ -273,23 +274,24 @@ class WhipWhepManager(
                     )
                 }
             } else {
-                val errorMsg = "WHIP推流失败: ${response.code()} ${response.message()}"
+                val errorMsg = "ZLMediaKit推流失败: ${response.code()} ${response.message()}"
                 XLog.e(errorMsg)
                 onError?.invoke(errorMsg)
             }
         } catch (e: Exception) {
-            val errorMsg = "WHIP请求异常: ${e.message}"
+            val errorMsg = "ZLMediaKit推流请求异常: ${e.message}"
             XLog.e(errorMsg)
             onError?.invoke(errorMsg)
         }
     }
     
     /**
-     * 发送WHEP拉流请求
+     * 发送WHEP拉流请求 - ZLMediaKit格式
      */
     private suspend fun sendWhepRequest(sdp: String, roomId: String) {
         try {
-            val whepUrl = Constant.WHIP_WHEP_BASE_URL + "/whep/" + roomId
+            // ZLMediaKit格式: /index/api/webrtc?app=live&stream={roomId}&type=play&codec=H264/PCMA
+            val whepUrl = "${Constant.WHIP_WHEP_BASE_URL}/index/api/webrtc?app=live&stream=$roomId&type=play&codec=H264/PCMA"
             
             val response = withContext(Dispatchers.IO) {
                 retrofitClient.apiService.whepPlay(whepUrl, sdp)
@@ -299,7 +301,7 @@ class WhipWhepManager(
                 val responseBody = response.body()
                 responseBody?.let { body ->
                     whepResourceUrl = body.location ?: body.link
-                    XLog.i("WHEP拉流成功，资源URL: $whepResourceUrl")
+                    XLog.i("ZLMediaKit拉流成功，资源URL: $whepResourceUrl")
                     
                     // 设置远程SDP
                     val answerSdp = SessionDescription(
@@ -312,12 +314,12 @@ class WhipWhepManager(
                     )
                 }
             } else {
-                val errorMsg = "WHEP拉流失败: ${response.code()} ${response.message()}"
+                val errorMsg = "ZLMediaKit拉流失败: ${response.code()} ${response.message()}"
                 XLog.e(errorMsg)
                 onError?.invoke(errorMsg)
             }
         } catch (e: Exception) {
-            val errorMsg = "WHEP请求异常: ${e.message}"
+            val errorMsg = "ZLMediaKit拉流请求异常: ${e.message}"
             XLog.e(errorMsg)
             onError?.invoke(errorMsg)
         }

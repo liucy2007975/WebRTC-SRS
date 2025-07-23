@@ -127,9 +127,13 @@
 ## 部署配置
 
 ### 服务器配置
-- **WebRTC服务器**: 支持WHIP/WHEP协议，支持TCP传输
-- **服务器地址**: 直接连接到WebRTC服务器，无需外部ICE
-- **信令协议**: HTTP RESTful API (WHIP/WHEP端点)
+- **WebRTC服务器**: ZLMediaKit (支持WHIP/WHEP协议，TCP传输)
+- **服务器地址**: `http://your-zlm-server:8080/index/api/webrtc`
+- **信令协议**: HTTP RESTful API (ZLMediaKit webrtc信令格式)
+- **文档参考**: [ZLMediaKit webrtc信令交互格式](https://github.com/ZLMediaKit/ZLMediaKit/wiki/webrtc信令交互格式)
+- **端点格式**: 
+  - WHIP推流: `POST /index/api/webrtc?app=live&stream=push&type=push&codec=H264/PCMA`
+  - WHEP拉流: `POST /index/api/webrtc?app=live&stream=pull&type=play&codec=H264/PCMA`
 
 ### 客户端配置
 - **权限配置**: 摄像头、麦克风权限

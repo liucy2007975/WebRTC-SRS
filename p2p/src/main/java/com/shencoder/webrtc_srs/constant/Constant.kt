@@ -37,7 +37,7 @@ object Constant {
     const val SRS_SERVER_HTTPS = "$SRS_SERVER_IP:$SRS_SERVER_HTTPS_PORT"
 
     /**
-     * WHIP/WHEP基础URL
+     * WHIP/WHEP基础URL - ZLMediaKit格式
      */
     const val WHIP_WHEP_BASE_URL = "http://$WHIP_WHEP_SERVER_IP:$WHIP_WHEP_SERVER_PORT"
 }
