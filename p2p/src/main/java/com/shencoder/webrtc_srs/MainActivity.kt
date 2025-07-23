@@ -29,6 +29,9 @@ class MainActivity : BaseSupportActivity<DefaultViewModel, ActivityMainBinding>(
     val socketIoClient = SocketIoClient()
     private val eglBaseContext = EglBase.create().eglBaseContext
     private lateinit var peerConnectionFactory: PeerConnectionFactory
+    
+    // 双向通话管理器
+    private lateinit var bidirectionalCallManager: BidirectionalCallManager
 
     /**
      * 推流地址
@@ -57,6 +60,8 @@ class MainActivity : BaseSupportActivity<DefaultViewModel, ActivityMainBinding>(
 
     override fun initView() {
         val etRoomId = findViewById<EditText>(R.id.etRoomId)
+        
+        // 原有的SRS RTC按钮
         findViewById<Button>(R.id.btnAdd).setOnClickListener {
             val roomId = etRoomId.text.toString().trim()
             if (roomId.isBlank()) {
@@ -68,6 +73,38 @@ class MainActivity : BaseSupportActivity<DefaultViewModel, ActivityMainBinding>(
                 joinRoom()
             }
             initPushRtc()
+        }
+        
+        // 新增WHIP/WHEP双向通话按钮
+        findViewById<Button>(R.id.btnStartCall)?.setOnClickListener {
+            val roomId = etRoomId.text.toString().trim()
+            if (roomId.isBlank()) {
+                toastWarning("请输入房间号")
+                return@setOnClickListener
+            }
+            startBidirectionalCall(roomId)
+        }
+        
+        // 结束通话按钮
+        findViewById<Button>(R.id.btnEndCall)?.setOnClickListener {
+            endBidirectionalCall()
+        }
+        
+        // 切换摄像头按钮
+        findViewById<Button>(R.id.btnSwitchCamera)?.setOnClickListener {
+            bidirectionalCallManager.switchCamera()
+        }
+        
+        // 静音按钮
+        findViewById<Button>(R.id.btnToggleMute)?.setOnClickListener {
+            val isMuted = bidirectionalCallManager.toggleMute()
+            updateMuteButtonState(isMuted)
+        }
+        
+        // 开关摄像头按钮
+        findViewById<Button>(R.id.btnToggleCamera)?.setOnClickListener {
+            val isCameraOff = bidirectionalCallManager.toggleCamera()
+            updateCameraButtonState(isCameraOff)
         }
     }
 
@@ -91,6 +128,10 @@ class MainActivity : BaseSupportActivity<DefaultViewModel, ActivityMainBinding>(
         mBinding.surfaceViewLocal.init(eglBaseContext, null)
         mBinding.surfaceViewRemote.init(eglBaseContext, null)
 
+        // 初始化双向通话管理器
+        bidirectionalCallManager = BidirectionalCallManager(this, peerConnectionFactory, eglBaseContext)
+        setupCallManagerCallbacks()
+
         socketIoClient.setCallback {
             println("pushRTC:${it}")
             if (it.isNullOrBlank()) {
@@ -99,6 +140,87 @@ class MainActivity : BaseSupportActivity<DefaultViewModel, ActivityMainBinding>(
             runOnUiThread { initPullRTC(url = it) }
         }
         socketIoClient.connect()
+    }
+    
+    /**
+     * 设置通话管理器回调
+     */
+    private fun setupCallManagerCallbacks() {
+        bidirectionalCallManager.onCallStarted = {
+            runOnUiThread {
+                updateCallButtons(true)
+                toastWarning("双向通话已开始")
+            }
+        }
+        
+        bidirectionalCallManager.onCallEnded = {
+            runOnUiThread {
+                updateCallButtons(false)
+                toastWarning("双向通话已结束")
+            }
+        }
+        
+        bidirectionalCallManager.onCallError = { error ->
+            runOnUiThread {
+                updateCallButtons(false)
+                toastError("通话错误: $error")
+            }
+        }
+        
+        bidirectionalCallManager.onLocalVideoReady = {
+            runOnUiThread {
+                toastWarning("本地视频已准备就绪")
+            }
+        }
+        
+        bidirectionalCallManager.onRemoteVideoReady = {
+            runOnUiThread {
+                toastWarning("远程视频已准备就绪")
+            }
+        }
+    }
+    
+    /**
+     * 开始双向通话
+     */
+    private fun startBidirectionalCall(roomId: String) {
+        bidirectionalCallManager.startBidirectionalCall(
+            roomId,
+            mBinding.surfaceViewLocal,
+            mBinding.surfaceViewRemote
+        )
+    }
+    
+    /**
+     * 结束双向通话
+     */
+    private fun endBidirectionalCall() {
+        bidirectionalCallManager.endCall()
+    }
+    
+    /**
+     * 更新通话按钮状态
+     */
+    private fun updateCallButtons(inCall: Boolean) {
+        findViewById<Button>(R.id.btnStartCall)?.isEnabled = !inCall
+        findViewById<Button>(R.id.btnEndCall)?.isEnabled = inCall
+        findViewById<Button>(R.id.btnSwitchCamera)?.isEnabled = inCall
+        findViewById<Button>(R.id.btnToggleMute)?.isEnabled = inCall
+        findViewById<Button>(R.id.btnToggleCamera)?.isEnabled = inCall
+    }
+    
+    /**
+     * 更新静音按钮状态
+     */
+    private fun updateMuteButtonState(isMuted: Boolean) {
+        findViewById<Button>(R.id.btnToggleMute)?.text = if (isMuted) "取消静音" else "静音"
+    }
+    
+    /**
+     * 更新摄像头按钮状态
+     */
+    private fun updateCameraButtonState(isCameraOff: Boolean) {
+        findViewById<Button>(R.id.btnToggleCamera)?.text = if (isCameraOff) "开启摄像头" else "关闭摄像头"
     }
 
     private fun initPullRTC(url: String) {
@@ -375,5 +497,8 @@ class MainActivity : BaseSupportActivity<DefaultViewModel, ActivityMainBinding>(
         pushConnection?.dispose()
         pullConnection?.dispose()
         peerConnectionFactory.dispose()
+        
+        // 释放双向通话管理器
+        bidirectionalCallManager.release()
     }
 }
