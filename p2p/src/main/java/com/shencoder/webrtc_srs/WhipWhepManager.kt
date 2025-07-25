@@ -28,7 +28,7 @@ class WhipWhepManager(
     private val retrofitClient = RetrofitClient()
     
     // 推流相关
-    private var whipConnection: PeerConnection? = null
+    public var whipConnection: PeerConnection? = null
     private var whipVideoTrack: VideoTrack? = null
     private var whipAudioTrack: AudioTrack? = null
     private var whipCameraCapturer: CameraVideoCapturer? = null
@@ -36,7 +36,7 @@ class WhipWhepManager(
     private var whipResourceUrl: String? = null
     
     // 拉流相关
-    private var whepConnection: PeerConnection? = null
+    public var whepConnection: PeerConnection? = null
     private var whepResourceUrl: String? = null
     
     // 回调
